@@ -12,7 +12,7 @@ class TakeAwayBooking
 {
     #[ORM\Id]
     #[ORM\GeneratedValue]
-    #[ORM\Column]
+    #[ORM\Column(nullable: true)]
     private ?int $id = null;
 
     /**
