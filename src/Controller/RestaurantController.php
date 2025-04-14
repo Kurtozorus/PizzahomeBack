@@ -39,7 +39,7 @@ final class RestaurantController extends AbstractController
             ['id' => $restaurant->getId()],
             UrlGeneratorInterface::ABSOLUTE_URL
         );
-        return new JsonResponse($responseData, Response::HTTP_OK, ['Location' => $location], true);
+        return new JsonResponse($responseData, Response::HTTP_CREATED, ['Location' => $location], true);
     }
 
 
