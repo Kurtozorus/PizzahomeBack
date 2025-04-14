@@ -10,7 +10,7 @@ use Doctrine\Migrations\AbstractMigration;
 /**
  * Auto-generated Migration: Please modify to your needs!
  */
-final class Version20250402170901 extends AbstractMigration
+final class Version20250411152048 extends AbstractMigration
 {
     public function getDescription(): string
     {
@@ -21,7 +21,13 @@ final class Version20250402170901 extends AbstractMigration
     {
         // this up() migration is auto-generated, please modify it to your needs
         $this->addSql(<<<'SQL'
-            CREATE TABLE take_away_booking (id INT AUTO_INCREMENT NOT NULL, PRIMARY KEY(id)) DEFAULT CHARACTER SET utf8mb4 COLLATE `utf8mb4_unicode_ci` ENGINE = InnoDB
+            ALTER TABLE food ADD category_id INT DEFAULT NULL
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE food ADD CONSTRAINT FK_D43829F712469DE2 FOREIGN KEY (category_id) REFERENCES category (id)
+        SQL);
+        $this->addSql(<<<'SQL'
+            CREATE INDEX IDX_D43829F712469DE2 ON food (category_id)
         SQL);
     }
 
@@ -29,7 +35,13 @@ final class Version20250402170901 extends AbstractMigration
     {
         // this down() migration is auto-generated, please modify it to your needs
         $this->addSql(<<<'SQL'
-            DROP TABLE take_away_booking
+            ALTER TABLE food DROP FOREIGN KEY FK_D43829F712469DE2
+        SQL);
+        $this->addSql(<<<'SQL'
+            DROP INDEX IDX_D43829F712469DE2 ON food
+        SQL);
+        $this->addSql(<<<'SQL'
+            ALTER TABLE food DROP category_id
         SQL);
     }
 }

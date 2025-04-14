@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: FoodRepository::class)]
 class Food
@@ -17,18 +18,22 @@ class Food
     private ?int $id = null;
 
     #[ORM\Column(length: 64)]
+    #[Groups("food", "takeAwayBooking")]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
     #[ORM\Column]
+    #[Groups("food", "takeAwayBooking")]
     private ?float $price = null;
 
     #[ORM\Column]
+    #[Groups("food")]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
+    #[Groups("food")]
     private ?\DateTimeImmutable $updatedAt = null;
 
     /**
@@ -38,16 +43,20 @@ class Food
     private Collection $pictures;
 
     #[ORM\ManyToOne(inversedBy: 'food')]
-    #[ORM\JoinColumn(nullable: false)]
+    #[Groups("category", "food")]
     private ?Category $category = null;
 
-    #[ORM\ManyToOne(inversedBy: 'food')]
-    #[ORM\JoinColumn(nullable: false)]
-    private ?TakeAwayBooking $takeawaybooking = null;
+    /**
+     * @var Collection<int, TakeAwayBooking>
+     */
+    #[ORM\ManyToMany(targetEntity: TakeAwayBooking::class, inversedBy: 'food')]
+    #[Groups("takeAwayBooking")]
+    private Collection $takeAwayBooking;
 
     public function __construct()
     {
         $this->pictures = new ArrayCollection();
+        $this->takeAwayBooking = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -141,7 +150,6 @@ class Food
                 $picture->setFood(null);
             }
         }
-
         return $this;
     }
 
@@ -157,14 +165,26 @@ class Food
         return $this;
     }
 
-    public function getTakeawaybooking(): ?TakeAwayBooking
+    /**
+     * @return Collection<int, TakeAwayBooking>
+     */
+    public function getTakeAwayBooking(): Collection
     {
-        return $this->takeawaybooking;
+        return $this->takeAwayBooking;
     }
 
-    public function setTakeawaybooking(?TakeAwayBooking $takeawaybooking): static
+    public function addTakeAwayBooking(TakeAwayBooking $takeAwayBooking): static
     {
-        $this->takeawaybooking = $takeawaybooking;
+        if (!$this->takeAwayBooking->contains($takeAwayBooking)) {
+            $this->takeAwayBooking->add($takeAwayBooking);
+        }
+
+        return $this;
+    }
+
+    public function removeTakeAwayBooking(TakeAwayBooking $takeAwayBooking): static
+    {
+        $this->takeAwayBooking->removeElement($takeAwayBooking);
 
         return $this;
     }
