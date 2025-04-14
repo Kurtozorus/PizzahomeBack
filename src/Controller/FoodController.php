@@ -137,7 +137,7 @@ final class FoodController extends AbstractController
         if ($food) {
             $this->manager->remove($food);
             $this->manager->flush();
-            return new JsonResponse(['status' => 'success', 'message' => 'Le plat a été supprimé avec succès'], Response::HTTP_OK);
+            return new JsonResponse(['status' => 'succès', 'message' => 'Le plat a été supprimé avec succès'], Response::HTTP_OK);
         }
         return new JsonResponse(null, Response::HTTP_NOT_FOUND);
     }
