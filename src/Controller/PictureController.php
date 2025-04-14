@@ -106,7 +106,7 @@ final class PictureController extends AbstractController
             $extension = $pictureFile->guessExtension();
             $fileName .= '.' . $extension;
 
-            //Déplacement du fichier vers un dossier sécurisé (hors de l'accès direct du public)
+            //Déplacement du fichier vers un dossier sécurisé
             $pictureFile->move($this->uploadDir, $fileName);
         } else {
             //Vérification et décodage des données Base64

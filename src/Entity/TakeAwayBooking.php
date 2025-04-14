@@ -6,6 +6,7 @@ use App\Repository\TakeAwayBookingRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: TakeAwayBookingRepository::class)]
 class TakeAwayBooking
@@ -13,12 +14,13 @@ class TakeAwayBooking
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(nullable: true)]
+    #[Groups("takeAwayBooking")]
     private ?int $id = null;
 
     /**
      * @var Collection<int, Food>
      */
-    #[ORM\OneToMany(targetEntity: Food::class, mappedBy: 'takeawaybooking', orphanRemoval: true)]
+    #[ORM\ManyToMany(targetEntity: Food::class, mappedBy: 'takeAwayBooking')]
     private Collection $food;
 
     public function __construct()
@@ -43,7 +45,7 @@ class TakeAwayBooking
     {
         if (!$this->food->contains($food)) {
             $this->food->add($food);
-            $food->setTakeawaybooking($this);
+            $food->addTakeAwayBooking($this);
         }
 
         return $this;
@@ -52,10 +54,7 @@ class TakeAwayBooking
     public function removeFood(Food $food): static
     {
         if ($this->food->removeElement($food)) {
-            // set the owning side to null (unless already changed)
-            if ($food->getTakeawaybooking() === $this) {
-                $food->setTakeawaybooking(null);
-            }
+            $food->removeTakeAwayBooking($this);
         }
 
         return $this;
