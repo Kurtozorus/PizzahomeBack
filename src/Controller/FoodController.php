@@ -73,7 +73,11 @@ final class FoodController extends AbstractController
         $this->manager->persist($food);
         $this->manager->flush();
 
-        $responseData = $this->serializer->serialize($food, 'json', ['groups' => ["food", "category"]]);
+        $responseData = $this->serializer->serialize(
+            $food,
+            'json',
+            ['groups' => ["food"]]
+        );
         $location = $this->urlGenerator->generate(
             'app_api_food_show',
             ['id' => $food->getId()],
@@ -86,7 +90,7 @@ final class FoodController extends AbstractController
     public function show(int $id): JsonResponse
     {
         $food = $this->repository->findOneBy(['id' => $id]);
-        $responseData = $this->serializer->serialize($food, 'json', ['groups' => ["food", "category"]]);
+        $responseData = $this->serializer->serialize($food, 'json', ['groups' => ["food"]]);
         return new JsonResponse($responseData, Response::HTTP_OK, [], true);
     }
 
@@ -121,7 +125,7 @@ final class FoodController extends AbstractController
 
         $this->manager->flush();
 
-        $responseData = $this->serializer->serialize($food, 'json', ['groups' => ["food", "category"]]);
+        $responseData = $this->serializer->serialize($food, 'json', ['groups' => ["food"]]);
         $location = $this->urlGenerator->generate(
             'app_api_food_show',
             ['id' => $food->getId()],

@@ -22,6 +22,7 @@ class Food
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups("food", "takeAwayBooking")]
     private ?string $description = null;
 
     #[ORM\Column]
@@ -43,7 +44,7 @@ class Food
     private Collection $pictures;
 
     #[ORM\ManyToOne(inversedBy: 'food')]
-    #[Groups("category", "food")]
+    #[Groups("food")]
     private ?Category $category = null;
 
     /**
