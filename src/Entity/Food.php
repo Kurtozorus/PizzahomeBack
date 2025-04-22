@@ -18,15 +18,15 @@ class Food
     private ?int $id = null;
 
     #[ORM\Column(length: 64)]
-    #[Groups("food", "takeAwayBooking")]
+    #[Groups("food")]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups("food", "takeAwayBooking")]
+    #[Groups("food")]
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups("food", "takeAwayBooking")]
+    #[Groups("food")]
     private ?float $price = null;
 
     #[ORM\Column]
@@ -44,14 +44,13 @@ class Food
     private Collection $pictures;
 
     #[ORM\ManyToOne(inversedBy: 'food')]
-    #[Groups("food")]
+    #[Groups("food", "category")]
     private ?Category $category = null;
 
     /**
      * @var Collection<int, TakeAwayBooking>
      */
     #[ORM\ManyToMany(targetEntity: TakeAwayBooking::class, inversedBy: 'food')]
-    #[Groups("takeAwayBooking")]
     private Collection $takeAwayBooking;
 
     public function __construct()

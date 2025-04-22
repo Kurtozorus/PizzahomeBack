@@ -38,7 +38,7 @@ final class CategoryController extends AbstractController
             Response::HTTP_OK
         );
     }
-    #[Route(methods: 'POST')]
+    #[Route(name: 'new', methods: 'POST')]
     public function new(Request $request): JsonResponse
     {
         $category = $this->serializer->deserialize($request->getContent(), Category::class, 'json');

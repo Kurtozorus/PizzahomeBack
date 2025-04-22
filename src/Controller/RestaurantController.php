@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Restaurant;
+use App\Entity\User;
 use App\Repository\RestaurantRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -24,16 +25,28 @@ final class RestaurantController extends AbstractController
         private UrlGeneratorInterface $urlGenerator,
 
     ) {}
-    #[Route(methods: 'POST')]
+    #[Route(name: 'new', methods: 'POST')]
     public function new(Request $request): JsonResponse
     {
+        /** @var User $user */
+        $data = json_decode($request->getContent(), true);
         $restaurant = $this->serializer->deserialize($request->getContent(), Restaurant::class, 'json');
+        if ($data['owner']) {
+            $owner = $this->manager->getRepository(User::class)->find($data['owner']);
+            $restaurant->setOwner($owner);
+        } else {
+            return new JsonResponse(['erreur' => 'Utilisateur introuvable'], Response::HTTP_NOT_FOUND);
+        }
         $restaurant->setCreatedAt(new DateTimeImmutable());
 
         $this->manager->persist($restaurant);
         $this->manager->flush();
 
-        $responseData = $this->serializer->serialize($restaurant, 'json');
+        $responseData = $this->serializer->serialize(
+            $restaurant,
+            'json',
+            ['groups' => ['restaurant']]
+        );
         $location = $this->urlGenerator->generate(
             'app_api_restaurant_show',
             ['id' => $restaurant->getId()],
@@ -47,7 +60,7 @@ final class RestaurantController extends AbstractController
     public function show(int $id): JsonResponse
     {
         $restaurant = $this->repository->findOneBy(["id" => $id]);
-        $responseData = $this->serializer->serialize($restaurant, 'json');
+        $responseData = $this->serializer->serialize($restaurant, 'json', ['groups' => ['restaurant']]);
         return new JsonResponse($responseData, Response::HTTP_OK, [], true);
     }
 
@@ -55,6 +68,8 @@ final class RestaurantController extends AbstractController
     public function edit(int $id, Request $request): JsonResponse
     {
         $restaurant = $this->repository->findOneBy(["id" => $id]);
+
+        $data = json_decode($request->getContent(), true);
         if ($restaurant) {
             $restaurant = $this->serializer->deserialize(
                 $request->getContent(),
@@ -62,11 +77,22 @@ final class RestaurantController extends AbstractController
                 'json',
                 [AbstractNormalizer::OBJECT_TO_POPULATE => $restaurant]
             );
+            if ($data['owner']) {
+                $owner = $this->manager->getRepository(User::class)->find($data['owner']);
+                $restaurant->setOwner($owner);
+            } else {
+                return new JsonResponse(['erreur' => 'Utilisateur introuvable'], Response::HTTP_NOT_FOUND);
+            }
             $restaurant->setUpdatedAt(new DateTimeImmutable());
+
 
             $this->manager->flush();
 
-            $responseData = $this->serializer->serialize($restaurant, 'json');
+            $responseData = $this->serializer->serialize(
+                $restaurant,
+                'json',
+                ['groups' => ['restaurant']]
+            );
             $location = $this->urlGenerator->generate(
                 'app_api_restaurant_show',
                 ['id' => $restaurant->getId()],
@@ -84,7 +110,7 @@ final class RestaurantController extends AbstractController
         if ($restaurant) {
             $this->manager->remove($restaurant);
             $this->manager->flush();
-            return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+            return new JsonResponse(['status' => 'succès', 'message' => 'Le restaurant a été supprimé avec succès'], Response::HTTP_OK);
         }
 
         return new JsonResponse(null, Response::HTTP_NOT_FOUND);

@@ -16,6 +16,18 @@ class TakeAwayBookingRepository extends ServiceEntityRepository
         parent::__construct($registry, TakeAwayBooking::class);
     }
 
+    public function findById(int $id): ?TakeAwayBooking
+    {
+        return $this->createQueryBuilder('tab')
+            ->innerJoin('tab.user', 'u')
+            ->innerJoin('tab.food', 'f')
+            ->innerJoin('f.category', 'c')
+            ->addSelect('tab', 'u', 'f', 'c')
+            ->where('tab.id = :id')
+            ->setParameter('id', $id)
+            ->getQuery()
+            ->getOneorNullResult();
+    }
     //    /**
     //     * @return TakeAwayBooking[] Returns an array of TakeAwayBooking objects
     //     */

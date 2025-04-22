@@ -18,7 +18,7 @@ class Category
     private ?int $id = null;
 
     #[ORM\Column(length: 36)]
-    #[Groups("food")]
+    #[Groups("food", "category")]
     private ?string $title = null;
 
     #[ORM\Column]
