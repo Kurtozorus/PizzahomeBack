@@ -15,7 +15,17 @@ class FoodRepository extends ServiceEntityRepository
     {
         parent::__construct($registry, Food::class);
     }
-
+    public function findByIds(array $ids): array
+    {
+        return $this->createQueryBuilder('f')
+            ->select('f', 'c')
+            ->innerJoin('f.category', 'c')
+            ->andWhere('f.id IN (:ids)')
+            ->setParameter('ids', $ids)
+            ->orderBy('f.category', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
     //    /**
     //     * @return Food[] Returns an array of Food objects
     //     */

@@ -4,7 +4,6 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Entity\Food;
-use App\Entity\TakeAwayBooking;
 use App\Repository\FoodRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -42,7 +41,7 @@ final class FoodController extends AbstractController
         );
     }
 
-    #[Route(methods: 'POST')]
+    #[Route(name: 'new', methods: 'POST')]
     public function new(Request $request): JsonResponse
     {
         /** @var Category $category */

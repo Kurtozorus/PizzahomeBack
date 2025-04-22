@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Component\Serializer\Attribute\Groups;
 
 #[ORM\Entity(repositoryClass: RestaurantRepository::class)]
 class Restaurant
@@ -17,6 +18,7 @@ class Restaurant
     private ?int $id = null;
 
     #[ORM\Column(length: 32)]
+    #[Groups(['restaurant'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -42,6 +44,10 @@ class Restaurant
      */
     #[ORM\OneToMany(targetEntity: Picture::class, mappedBy: 'restaurant', orphanRemoval: true)]
     private Collection $pictures;
+
+    #[ORM\ManyToOne(inversedBy: 'restaurants')]
+    #[Groups(['restaurant'])]
+    private ?User $owner = null;
 
     public function __construct()
     {
@@ -163,6 +169,18 @@ class Restaurant
                 $picture->setRestaurant(null);
             }
         }
+
+        return $this;
+    }
+
+    public function getOwner(): ?User
+    {
+        return $this->owner;
+    }
+
+    public function setOwner(?User $owner): static
+    {
+        $this->owner = $owner;
 
         return $this;
     }
