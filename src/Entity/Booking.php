@@ -15,21 +15,23 @@ class Booking
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['bookings'])]
+    #[Groups(['bookings', 'userInfo'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::SMALLINT)]
-    #[Groups(['bookings'])]
+    #[Groups(['bookings', 'userInfo'])]
     private ?int $guestNumber = null;
 
     #[ORM\Column(type: Types::DATE_MUTABLE)]
+    #[Groups(['userInfo'])]
     private ?\DateTimeInterface $orderDate = null;
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    #[Groups(['userInfo'])]
     private ?\DateTimeInterface $orderHour = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['bookings'])]
+    #[Groups(['bookings', 'userInfo'])]
     private ?string $guestAllergy = null;
 
     #[ORM\Column]

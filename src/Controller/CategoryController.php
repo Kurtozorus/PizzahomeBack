@@ -6,6 +6,7 @@ use App\Entity\Category;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -23,22 +24,81 @@ final class CategoryController extends AbstractController
         private SerializerInterface $serializer,
         private UrlGeneratorInterface $urlGenerator
     ) {}
-    #[Route('/', name: 'index', methods: 'GET')]
-    public function index(): JsonResponse
-    {
-        $category = $this->manager->getRepository(Category::class)->findAll();
-        $categoryList = array_map(function (Category $category) {
-            return [
-                'id' => $category->getId(),
-                'title' => $category->getTitle()
-            ];
-        }, $category);
-        return new JsonResponse(
-            ['categories' => $categoryList],
-            Response::HTTP_OK
-        );
-    }
     #[Route(name: 'new', methods: 'POST')]
+    #[
+        OA\Post(
+            path: "/api/category",
+            summary: "Ajouter une categorie",
+            requestBody: new OA\RequestBody(
+                required: true,
+                description: "Les données de la categorie pour sa création",
+                content: new OA\MediaType(
+                    mediaType: "application/json",
+                    schema: new OA\Schema(
+                        type: "object",
+                        required: ["title"],
+                        properties: [
+                            new OA\Property(
+                                property: "title",
+                                type: "string",
+                                example: "entrée"
+                            )
+                        ]
+                    )
+                )
+            ),
+            responses: [
+                new OA\Response(
+                    response: '201',
+                    description: 'Categorie crée avec succès',
+                    content: new OA\MediaType(
+                        mediaType: 'application/json',
+                        schema: new OA\Schema(
+                            type: 'object',
+                            properties: [
+                                new OA\Property(
+                                    property: 'id',
+                                    type: 'integer',
+                                    example: 1
+                                ),
+                                new OA\Property(
+                                    property: 'title',
+                                    type: 'string',
+                                    example: 'entrée'
+                                ),
+                                new OA\Property(
+                                    property: 'created_at',
+                                    type: 'string',
+                                    example: '2023-01-01T00:00:00+00:00'
+                                ),
+                                new OA\Property(
+                                    property: 'updated_at',
+                                    type: 'string',
+                                    example: '2023-01-01T00:00:00+00:00'
+                                ),
+                                new OA\Property(
+                                    property: 'food',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(
+                                            property: 'id',
+                                            type: 'integer',
+                                            example: 1
+                                        ),
+                                        new OA\Property(
+                                            property: 'title',
+                                            type: 'string',
+                                            example: 'Pizza'
+                                        ),
+                                    ]
+                                )
+                            ]
+                        )
+                    )
+                )
+            ]
+        )
+    ]
     public function new(Request $request): JsonResponse
     {
         $category = $this->serializer->deserialize($request->getContent(), Category::class, 'json');
@@ -56,7 +116,131 @@ final class CategoryController extends AbstractController
         return new JsonResponse($responseData, Response::HTTP_CREATED, ['Location' => $location], true);
     }
 
+    #[Route(name: 'index', methods: 'GET')]
+    #[
+        OA\Get(
+            path: '/api/category',
+            summary: 'Voir la liste des catégories',
+            responses: [
+                new OA\Response(
+                    response: '200',
+                    description: 'Liste des categories',
+                    content: new OA\MediaType(
+                        mediaType: 'application/json',
+                        schema: new OA\Schema(
+                            type: 'object',
+                            properties: [
+                                new OA\Property(
+                                    property: "categories",
+                                    type: "object",
+                                    properties: [
+                                        new OA\Property(
+                                            property: "id",
+                                            type: "integer",
+                                            example: 1
+                                        ),
+                                        new OA\Property(
+                                            property: "title",
+                                            type: "string",
+                                            example: "entrée"
+                                        ),
+                                        new OA\Property(
+                                            property: "created_at",
+                                            type: "string",
+                                            example: "2023-01-01T00:00:00+00:00"
+                                        ),
+                                        new OA\Property(
+                                            property: "updated_at",
+                                            type: "string",
+                                            example: "2023-01-01T00:00:00+00:00"
+                                        )
+                                    ]
+                                )
+                            ]
+                        )
+                    )
+                )
+            ]
+        )
+    ]
+    public function index(): JsonResponse
+    {
+        $category = $this->manager->getRepository(Category::class)->findAll();
+        $categoryList = array_map(function (Category $category) {
+            return [
+                'id' => $category->getId(),
+                'title' => $category->getTitle()
+            ];
+        }, $category);
+        return new JsonResponse(
+            ['categories' => $categoryList],
+            Response::HTTP_OK
+        );
+    }
+
     #[Route('/{id}', name: 'show', methods: 'GET')]
+    #[OA\Get(
+        path: "/api/category/{id}",
+        summary: "Voir une categorie par son id",
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: '200',
+                description: 'Categorie trouvée avec succès',
+                content: new OA\MediaType(
+                    mediaType: 'application/json',
+                    schema: new OA\Schema(
+                        type: 'object',
+                        properties: [
+                            new OA\Property(
+                                property: 'id',
+                                type: 'integer',
+                                example: 1
+                            ),
+                            new OA\Property(
+                                property: 'title',
+                                type: 'string',
+                                example: 'entrée'
+                            ),
+                            new OA\Property(
+                                property: 'created_at',
+                                type: 'string',
+                                example: '2023-01-01T00:00:00+00:00'
+                            ),
+                            new OA\Property(
+                                property: 'updated_at',
+                                type: 'string',
+                                example: '2023-01-01T00:00:00+00:00'
+                            ),
+                            new OA\Property(
+                                property: 'food',
+                                type: 'object',
+                                properties: [
+                                    new OA\Property(
+                                        property: 'id',
+                                        type: 'integer',
+                                        example: 1
+                                    ),
+                                    new OA\Property(
+                                        property: 'title',
+                                        type: 'string',
+                                        example: 'Pizza'
+                                    ),
+                                ]
+                            )
+                        ]
+                    )
+                )
+            )
+        ]
+    )]
     public function show(int $id): JsonResponse
     {
         $category = $this->repository->findOneBy(["id" => $id]);
@@ -64,7 +248,66 @@ final class CategoryController extends AbstractController
         return new JsonResponse($responseData, Response::HTTP_OK, [], true);
     }
 
+
     #[Route('/{id}', name: 'edit', methods: 'PUT')]
+    #[OA\Put(
+        path: "/api/category/{id}",
+        summary: "Modifier une categorie par son id",
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            description: "Les données de la categorie pour sa mise à jour",
+            content: new OA\MediaType(
+                mediaType: "application/json",
+                schema: new OA\Schema(
+                    type: "object",
+                    required: ["title"],
+                    properties: [
+                        new OA\Property(
+                            property: "title",
+                            type: "string",
+                            example: "entrée"
+                        )
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: '200',
+                description: 'Categorie modifiée avec succès',
+                content: new OA\MediaType(
+                    mediaType: 'application/json',
+                    schema: new OA\Schema(
+                        type: 'object',
+                        properties: [
+                            new OA\Property(
+                                property: 'id',
+                                type: 'integer',
+                                example: 1
+                            ),
+                            new OA\Property(
+                                property: 'title',
+                                type: 'string',
+                                example: 'entrée'
+                            ),
+                        ]
+                    )
+                )
+            ),
+            new OA\Response(
+                response: '404',
+                description: 'Categorie non trouvée'
+            )
+        ]
+    )]
     public function edit(int $id, Request $request): JsonResponse
     {
         $category = $this->repository->findOneBy(['id' => $id]);
@@ -91,6 +334,42 @@ final class CategoryController extends AbstractController
     }
 
     #[Route('/{id}', name: 'delete', methods: 'DELETE')]
+    #[OA\Delete(
+        path: "/api/category/{id}",
+        summary: "Supprimer une categorie par son id",
+        parameters: [
+            new OA\Parameter(
+                name: "id",
+                in: "path",
+                required: true,
+                schema: new OA\Schema(type: "integer")
+            )
+        ],
+        responses: [
+            new OA\Response(
+                response: '200',
+                description: 'Categorie supprimée avec succès',
+                content: new OA\MediaType(
+                    mediaType: 'application/json',
+                    schema: new OA\Schema(
+                        type: 'object',
+                        properties: [
+                            new OA\Property(
+                                property: 'status',
+                                type: 'string',
+                                example: 'succès'
+                            ),
+                            new OA\Property(
+                                property: 'message',
+                                type: 'string',
+                                example: 'La categorie a été supprimée avec succès'
+                            )
+                        ]
+                    )
+                )
+            )
+        ]
+    )]
     public function delete(int $id): JsonResponse
     {
         $category = $this->manager->getRepository(Category::class)->find($id);

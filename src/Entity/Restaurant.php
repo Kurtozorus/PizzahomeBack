@@ -18,22 +18,27 @@ class Restaurant
     private ?int $id = null;
 
     #[ORM\Column(length: 32)]
-    #[Groups(['restaurant'])]
+    #[Groups(['restaurant', 'userInfo'])]
     private ?string $name = null;
 
     #[ORM\Column(type: Types::TEXT)]
+    #[Groups(['restaurant'])]
     private ?string $description = null;
 
     #[ORM\Column(type: Types::ARRAY)]
+    #[Groups(['restaurant'])]
     private array $amOpeningTime = [];
 
     #[ORM\Column(type: Types::ARRAY)]
+    #[Groups(['restaurant'])]
     private array $pmOpeningTime = [];
 
     #[ORM\Column(type: Types::SMALLINT)]
+    #[Groups(['restaurant'])]
     private ?int $maxGuest = null;
 
     #[ORM\Column]
+    #[Groups(['restaurant'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(nullable: true)]
@@ -46,7 +51,6 @@ class Restaurant
     private Collection $pictures;
 
     #[ORM\ManyToOne(inversedBy: 'restaurants')]
-    #[Groups(['restaurant'])]
     private ?User $owner = null;
 
     public function __construct()

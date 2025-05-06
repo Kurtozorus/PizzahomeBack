@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\TakeAwayBookingRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\Common\Collections\Collection;
+use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Serializer\Attribute\Groups;
 
@@ -14,14 +15,14 @@ class TakeAwayBooking
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(nullable: true)]
-    #[Groups("takeAwayBookings")]
+    #[Groups("takeAwayBookings", "userInfo")]
     private ?int $id = null;
 
     /**
      * @var Collection<int, Food>
      */
     #[ORM\ManyToMany(targetEntity: Food::class, cascade: ['persist'], mappedBy: 'takeAwayBooking')]
-    #[Groups("takeAwayBookings")]
+    #[Groups("takeAwayBookings", "userInfo")]
     private Collection $food;
 
     #[ORM\ManyToOne(inversedBy: 'takeAwayBookings')]
@@ -35,6 +36,9 @@ class TakeAwayBooking
 
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $updatedAt = null;
+
+    #[ORM\Column(type: Types::DATETIME_MUTABLE)]
+    private ?\DateTimeInterface $hourToRecover = null;
 
 
     public function __construct()
@@ -108,5 +112,22 @@ class TakeAwayBooking
         $this->updatedAt = $updatedAt;
 
         return $this;
+    }
+
+    public function getHourToRecover(): ?\DateTimeInterface
+    {
+        return $this->hourToRecover;
+    }
+
+    public function setHourToRecover(\DateTimeInterface $hourToRecover): static
+    {
+        $this->hourToRecover = $hourToRecover;
+
+        return $this;
+    }
+    #[Groups(['takeAwayBookings'])]
+    public function getHourToRecoverString(): ?string
+    {
+        return $this->hourToRecover->format('H:i');
     }
 }
