@@ -18,7 +18,7 @@ class Food
     private ?int $id = null;
 
     #[ORM\Column(length: 64)]
-    #[Groups("food")]
+    #[Groups("food", "userInfo")]
     private ?string $title = null;
 
     #[ORM\Column(type: Types::TEXT)]
@@ -26,7 +26,7 @@ class Food
     private ?string $description = null;
 
     #[ORM\Column]
-    #[Groups("food")]
+    #[Groups("food", "userInfo")]
     private ?float $price = null;
 
     #[ORM\Column]

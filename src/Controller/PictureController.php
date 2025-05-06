@@ -9,6 +9,7 @@ use App\Repository\PictureRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -38,22 +39,107 @@ final class PictureController extends AbstractController
         // Définition du répertoire d'upload des images
         $this->uploadDir = $this->kernel->getProjectDir() . '/public/uploads/pictures/';
     }
-    #[Route('/', name: 'index', methods: 'GET')]
-    public function index(): JsonResponse
-    {
-        $picture = $this->manager->getRepository(Picture::class)->findAll();
-        $pictureList = array_map(function (Picture $picture) {
-            return [
-                'id' => $picture->getId(),
-                'url' => $picture->getPublicPath(),
-            ];
-        }, $picture);
-        return new JsonResponse(
-            ['pictures' => $pictureList],
-            JsonResponse::HTTP_OK
-        );
-    }
     #[Route(name: 'new', methods: 'POST')]
+    #[
+        OA\Post(
+            path: "/api/picture",
+            summary: "Ajouter une image",
+            requestBody: new OA\RequestBody(
+                required: true,
+                description: "Les données necessaires pour ajouter une image",
+                content: new OA\MediaType(
+                    mediaType: "multipart/form-data",
+                    schema: new OA\Schema(
+                        type: "object",
+                        required: ["picture", "title", "slug", "restaurant_id", "food_id"],
+                        properties: [
+                            new OA\Property(
+                                property: "picture",
+                                type: "string",
+                                format: "binary",
+                                example: "fichier.jpg"
+                            ),
+                            new OA\Property(
+                                property: "title",
+                                type: "string",
+                                example: "Pizza Test"
+                            ),
+                            new OA\Property(
+                                property: "slug",
+                                type: "string",
+                                example: "pizza-test"
+                            ),
+                            new OA\Property(
+                                property: "restaurant_id",
+                                type: "integer",
+                                example: 1
+                            ),
+                            new OA\Property(
+                                property: "food_id",
+                                type: "integer",
+                                example: 1
+                            )
+                        ]
+                    )
+                )
+            ),
+            responses: [
+                new OA\Response(
+                    response: "201",
+                    description: "Uplaod de l'image réussite",
+                    content: new OA\MediaType(
+                        mediaType: "application/json",
+                        schema: new OA\Schema(
+                            type: "object",
+                            properties: [
+                                new OA\Property(
+                                    property: 'status',
+                                    type: 'string',
+                                    example: 'succès'
+                                ),
+                                new OA\Property(
+                                    property: 'message',
+                                    type: 'string',
+                                    example: "Image uploaded avec succès"
+                                ),
+                                new OA\Property(
+                                    property: 'image',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(
+                                            property: "id",
+                                            type: "integer",
+                                            example: 1
+                                        ),
+                                        new OA\Property(
+                                            property: 'title',
+                                            type: 'string',
+                                            example: 'Pizza Teste'
+                                        ),
+                                        new OA\Property(
+                                            property: 'slug',
+                                            type: 'string',
+                                            example: 'pizza-test'
+                                        ),
+                                        new OA\Property(
+                                            property: 'publicPath',
+                                            type: 'string',
+                                            example: "http://127.0.0.1:8000/uploads/pictures/680fa0b23a1b34.00048380.webp"
+                                        ),
+                                        new OA\Property(
+                                            property: 'createdAt',
+                                            type: 'string',
+                                            example: '28-04-2025'
+                                        )
+                                    ]
+                                ),
+                            ]
+                        )
+                    )
+                )
+            ]
+        )
+    ]
     public function new(Request $request): JsonResponse
     {
         //Récupération des données envoyées par le client
@@ -219,6 +305,151 @@ final class PictureController extends AbstractController
     }
 
     #[Route('/{id}', name: 'show', methods: ['GET'])]
+    #[
+        OA\Get(
+            path: "/api/picture/{id}",
+            summary: "Voir une image par son id",
+            parameters: [
+                new OA\Parameter(
+                    name: "id",
+                    in: "path",
+                    required: true,
+                    schema: new OA\Schema(type: "integer")
+                )
+            ],
+            responses: [
+                new OA\Response(
+                    response: '200',
+                    description: 'Image trouvée avec succès',
+                    content: new OA\MediaType(
+                        mediaType: 'application/json',
+                        schema: new OA\Schema(
+                            type: 'object',
+                            properties: [
+                                new OA\Property(
+                                    property: 'status',
+                                    type: 'string',
+                                    example: 'success'
+                                ),
+                                new OA\Property(
+                                    property: 'message',
+                                    type: 'string',
+                                    example: 'Image trouvée avec succès'
+                                ),
+                                new OA\Property(
+                                    property: 'image',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(
+                                            property: 'id',
+                                            type: 'integer',
+                                            example: 1
+                                        ),
+                                        new OA\Property(
+                                            property: 'title',
+                                            type: 'string',
+                                            example: 'entrée'
+                                        ),
+                                        new OA\Property(
+                                            property: 'slug',
+                                            type: 'string',
+                                            example: 'entree'
+                                        ),
+                                        new OA\Property(
+                                            property: 'publicPath',
+                                            type: 'string',
+                                            example: '/uploads/pictures/1.jpg'
+                                        ),
+                                        new OA\Property(
+                                            property: 'localPath',
+                                            type: 'string',
+                                            example: '1.jpg'
+                                        ),
+                                        new OA\Property(
+                                            property: 'createdAt',
+                                            type: 'string',
+                                            example: '2023-01-01'
+                                        ),
+                                        new OA\Property(
+                                            property: 'updatedAt',
+                                            type: 'string',
+                                            example: '2023-01-01'
+                                        ),
+                                    ]
+                                ),
+                                new OA\Property(
+                                    property: 'restaurant',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(
+                                            property: 'id',
+                                            type: 'integer',
+                                            example: 1
+                                        ),
+                                        new OA\Property(
+                                            property: 'name',
+                                            type: 'string',
+                                            example: 'Resto'
+                                        )
+                                    ]
+                                ),
+                                new OA\Property(
+                                    property: 'food',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(
+                                            property: 'id',
+                                            type: 'integer',
+                                            example: 1
+                                        ),
+                                        new OA\Property(
+                                            property: 'title',
+                                            type: 'string',
+                                            example: 'Pizza'
+                                        )
+                                    ]
+                                )
+                            ]
+                        )
+                    )
+                ),
+                new OA\Response(
+                    response: '404',
+                    description: 'Image ou fichier introuvable',
+                    content: new OA\MediaType(
+                        mediaType: 'application/json',
+                        schema: new OA\Schema(
+                            type: 'object',
+                            properties: [
+                                new OA\Property(
+                                    property: 'error',
+                                    type: 'string',
+                                    example: 'Image ou fichier introuvable'
+                                )
+                            ]
+                        )
+                    )
+                ),
+                new OA\Response(
+                    response: '403',
+                    description: 'Accès refusé !',
+                    content: new OA\MediaType(
+                        mediaType: 'application/json',
+                        schema: new OA\Schema(
+                            type: 'object',
+                            properties: [
+                                new OA\Property(
+                                    property: 'error',
+                                    type: 'string',
+                                    example: 'Accès refusé !'
+                                )
+                            ]
+                        )
+                    )
+                )
+            ]
+        )
+    ]
     public function show(int $id, Request $request): JsonResponse|BinaryFileResponse
     {
         $picture = $this->manager->getRepository(Picture::class)->find($id);
@@ -276,6 +507,114 @@ final class PictureController extends AbstractController
         ]);
     }
     #[Route('/{id}', name: 'edit', methods: ['POST'])]
+    #[
+        OA\Post(
+            path: "/api/picture/{id}",
+            summary: "Modifier une image par son id",
+            parameters: [
+                new OA\Parameter(
+                    name: "id",
+                    in: "path",
+                    required: true,
+                    schema: new OA\Schema(type: "integer")
+                )
+            ],
+            requestBody: new OA\RequestBody(
+                required: true,
+                description: "Les données necessaires pour ajouter une image",
+                content: new OA\MediaType(
+                    mediaType: "multipart/form-data",
+                    schema: new OA\Schema(
+                        type: "object",
+                        required: ["picture", "title", "slug", "restaurant_id", "food_id"],
+                        properties: [
+                            new OA\Property(
+                                property: "picture",
+                                type: "string",
+                                format: "binary",
+                                example: "fichier.jpg"
+                            ),
+                            new OA\Property(
+                                property: "title",
+                                type: "string",
+                                example: "Pizza Test"
+                            ),
+                            new OA\Property(
+                                property: "slug",
+                                type: "string",
+                                example: "pizza-test"
+                            ),
+                            new OA\Property(
+                                property: "restaurant_id",
+                                type: "integer",
+                                example: 1
+                            ),
+                            new OA\Property(
+                                property: "food_id",
+                                type: "integer",
+                                example: 1
+                            )
+                        ]
+                    )
+                )
+            ),
+            responses: [
+                new OA\Response(
+                    response: "201",
+                    description: "Uplaod de l'image réussite",
+                    content: new OA\MediaType(
+                        mediaType: "application/json",
+                        schema: new OA\Schema(
+                            type: "object",
+                            properties: [
+                                new OA\Property(
+                                    property: 'status',
+                                    type: 'string',
+                                    example: 'succès'
+                                ),
+                                new OA\Property(
+                                    property: 'message',
+                                    type: 'string',
+                                    example: "Image uploaded avec succès"
+                                ),
+                                new OA\Property(
+                                    property: 'image',
+                                    type: 'object',
+                                    properties: [
+                                        new OA\Property(
+                                            property: "id",
+                                            type: "integer",
+                                            example: 1
+                                        ),
+                                        new OA\Property(
+                                            property: 'title',
+                                            type: 'string',
+                                            example: 'Pizza Teste'
+                                        ),
+                                        new OA\Property(
+                                            property: 'slug',
+                                            type: 'string',
+                                            example: 'pizza-test'
+                                        ),
+                                        new OA\Property(
+                                            property: 'publicPath',
+                                            type: 'string',
+                                            example: "http://127.0.0.1:8000/uploads/pictures/680fa0b23a1b34.00048380.webp"
+                                        ),
+                                        new OA\Property(
+                                            property: 'createdAt',
+                                            type: 'string',
+                                            example: '28-04-2025'
+                                        )
+                                    ]
+                                ),
+                            ]
+                        )
+                    )
+                )
+            ]
+        )
+    ]
     public function edit(
         int $id,
         Request $request,
@@ -442,6 +781,44 @@ final class PictureController extends AbstractController
         ], Response::HTTP_OK);
     }
     #[Route('/{id}', name: 'delete', methods: ['DELETE'])]
+    #[
+        OA\Delete(
+            path: '/api/picture/{id}',
+            summary: 'Supprimer une image par son id',
+            parameters: [
+                new OA\Parameter(
+                    name: 'id',
+                    in: 'path',
+                    required: true,
+                    schema: new OA\Schema(type: 'integer')
+                )
+            ],
+            responses: [
+                new OA\Response(
+                    response: '200',
+                    description: 'Image supprimée avec succès',
+                    content: new OA\MediaType(
+                        mediaType: 'application/json',
+                        schema: new OA\Schema(
+                            type: 'object',
+                            properties: [
+                                new OA\Property(
+                                    property: 'status',
+                                    type: 'string',
+                                    example: 'success'
+                                ),
+                                new OA\Property(
+                                    property: 'message',
+                                    type: 'string',
+                                    example: 'Image supprimée avec succès'
+                                )
+                            ]
+                        )
+                    )
+                )
+            ]
+        )
+    ]
     public function delete(int $id): JsonResponse
     {
         $picture = $this->manager->getRepository(Picture::class)->find($id);

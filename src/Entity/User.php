@@ -22,12 +22,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?int $id = null;
 
     #[ORM\Column(length: 180)]
+    #[Groups(['userInfo'])]
     private ?string $email = null;
 
     /**
      * @var list<string> The user roles
      */
     #[ORM\Column]
+    #[Groups(['userInfo'])]
     private array $roles = [];
 
     /**
@@ -37,15 +39,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $password = null;
 
     #[ORM\Column(length: 32)]
-    #[Groups(['bookings', 'user:read'])]
+    #[Groups(['bookings', 'user:read', 'userInfo'])]
     private ?string $firstName = null;
 
     #[ORM\Column(length: 64)]
-    #[Groups(['restaurant', 'bookings', 'user:read'])]
+    #[Groups(['restaurant', 'bookings', 'user:read', 'userInfo'])]
     private ?string $lastName = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['bookings'])]
+    #[Groups(['bookings', 'userInfo'])]
     private ?string $allergy = null;
 
     #[ORM\Column]
@@ -55,12 +57,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?\DateTimeImmutable $updatedAt = null;
 
     #[ORM\Column(length: 255)]
+    #[Groups(['userInfo'])]
     private ?string $apiToken = null;
 
     /**
      * @var Collection<int, Restaurant>
      */
     #[ORM\OneToMany(targetEntity: Restaurant::class, mappedBy: 'owner')]
+    #[Groups(['restaurant', 'userInfo'])]
     private Collection $restaurants;
 
 
@@ -209,6 +213,11 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this;
     }
 
+    #[Groups(['userInfo'])]
+    public function getcreatedAtDateString(): ?string
+    {
+        return $this->createdAt->format('d-m-Y');
+    }
     public function getUpdatedAt(): ?\DateTimeImmutable
     {
         return $this->updatedAt;
