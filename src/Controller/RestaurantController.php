@@ -119,12 +119,34 @@ final class RestaurantController extends AbstractController
                             ]
                         )
                     )
+                ),
+                new OA\Response(
+                    response: "401",
+                    description: "Accès non autorisé"
                 )
             ]
         )
     ]
     public function new(Request $request, Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         /** @var User $user */
         json_decode($request->getContent(), true);
         $restaurant = $this->serializer->deserialize($request->getContent(), Restaurant::class, 'json');
@@ -349,11 +371,33 @@ final class RestaurantController extends AbstractController
                     response: "404",
                     description: "Restaurant ou Utilisateur non trouvable"
                 ),
+                new OA\Response(
+                    response: "401",
+                    description: "Accès non autorisé"
+                )
             ]
         )
     ]
     public function edit(int $id, Request $request, Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         $restaurant = $this->repository->findOneBy(["id" => $id]);
 
         json_decode($request->getContent(), true);
@@ -424,10 +468,32 @@ final class RestaurantController extends AbstractController
                 response: "404",
                 description: "Restaurant non trouvable"
             ),
+            new OA\Response(
+                response: "401",
+                description: "Accès non autorisé"
+            )
         ]
     )]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         $restaurant = $this->repository->findOneBy(["id" => $id]);
         if ($restaurant) {
             $this->manager->remove($restaurant);
