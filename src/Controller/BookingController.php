@@ -266,8 +266,26 @@ final class BookingController extends AbstractController
             ]
         )
     ]
-    public function index(): JsonResponse
+    public function index(Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         $booking = $this->manager->getRepository(Booking::class)->findAll();
         $booking = $this->serializer->serialize($booking, 'json', ['groups' => ['bookings']]);
         return new JsonResponse($booking, Response::HTTP_OK, [], true);

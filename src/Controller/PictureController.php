@@ -5,9 +5,11 @@ namespace App\Controller;
 use App\Entity\Food;
 use App\Entity\Picture;
 use App\Entity\Restaurant;
+use App\Entity\User;
 use App\Repository\PictureRepository;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use OpenApi\Attributes as OA;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -19,6 +21,7 @@ use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface as SerializerSerializerInterface;
 use Symfony\Component\String\Slugger\SluggerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
@@ -136,12 +139,35 @@ final class PictureController extends AbstractController
                             ]
                         )
                     )
+                ),
+                new OA\Response(
+                    response: "401",
+                    description: "Accès non autorisé",
                 )
             ]
         )
     ]
-    public function new(Request $request): JsonResponse
+    public function new(Request $request, Security $security): JsonResponse
     {
+
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         //Récupération des données envoyées par le client
         $title = $request->get('title');
         $slug = $request->get('slug');
@@ -611,6 +637,10 @@ final class PictureController extends AbstractController
                             ]
                         )
                     )
+                ),
+                new OA\Response(
+                    response: "401",
+                    description: "Accès non autorisé",
                 )
             ]
         )
@@ -618,8 +648,27 @@ final class PictureController extends AbstractController
     public function edit(
         int $id,
         Request $request,
-        UrlGeneratorInterface $urlGenerator
+        UrlGeneratorInterface $urlGenerator,
+        Security $security
     ): Response {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         // Récupérer l'image depuis la base de données
         $picture = $this->manager->getRepository(Picture::class)->find($id);
 
@@ -815,12 +864,34 @@ final class PictureController extends AbstractController
                             ]
                         )
                     )
+                ),
+                new OA\Response(
+                    response: '401',
+                    description: 'Accès non autorisé',
                 )
             ]
         )
     ]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         $picture = $this->manager->getRepository(Picture::class)->find($id);
         if (!$picture) {
             return new JsonResponse(['error' => 'Image introuvable'], Response::HTTP_NOT_FOUND);

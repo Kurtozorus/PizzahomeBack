@@ -214,7 +214,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     }
 
     #[Groups(['userInfo'])]
-    public function getcreatedAtDateString(): ?string
+    public function getCreatedAtDateString(): ?string
     {
         return $this->createdAt->format('d-m-Y');
     }

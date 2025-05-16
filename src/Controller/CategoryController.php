@@ -3,15 +3,18 @@
 namespace App\Controller;
 
 use App\Entity\Category;
+use App\Entity\User;
 use App\Repository\CategoryRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use OpenApi\Attributes as OA;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\Normalizer\AbstractNormalizer;
 use Symfony\Component\Serializer\SerializerInterface;
 
@@ -95,12 +98,35 @@ final class CategoryController extends AbstractController
                             ]
                         )
                     )
+                ),
+                new OA\Response(
+                    response: '401',
+                    description: 'Accès non autorisé'
                 )
             ]
         )
     ]
-    public function new(Request $request): JsonResponse
+    public function new(Request $request, Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
         $category = $this->serializer->deserialize($request->getContent(), Category::class, 'json');
         $category->setCreatedAt(new \DateTimeImmutable());
 
@@ -305,11 +331,33 @@ final class CategoryController extends AbstractController
             new OA\Response(
                 response: '404',
                 description: 'Categorie non trouvée'
+            ),
+            new OA\Response(
+                response: '401',
+                description: 'Accès non autorisé'
             )
         ]
     )]
-    public function edit(int $id, Request $request): JsonResponse
+    public function edit(int $id, Request $request, Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         $category = $this->repository->findOneBy(['id' => $id]);
         if ($category) {
             $category = $this->serializer->deserialize(
@@ -367,11 +415,37 @@ final class CategoryController extends AbstractController
                         ]
                     )
                 )
+            ),
+            new OA\Response(
+                response: '404',
+                description: 'Categorie non trouvée'
+            ),
+            new OA\Response(
+                response: '401',
+                description: 'Accès non autorisé'
             )
         ]
     )]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         $category = $this->manager->getRepository(Category::class)->find($id);
         if ($category) {
             $this->manager->remove($category);

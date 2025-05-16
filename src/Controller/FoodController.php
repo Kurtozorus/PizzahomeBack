@@ -4,15 +4,18 @@ namespace App\Controller;
 
 use App\Entity\Category;
 use App\Entity\Food;
+use App\Entity\User;
 use App\Repository\FoodRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use OpenApi\Attributes as OA;
+use Symfony\Bundle\SecurityBundle\Security;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
 
 #[Route('/api/food', name: 'app_api_food_')]
@@ -107,11 +110,33 @@ final class FoodController extends AbstractController
                         )
                     )
                 ),
+                new OA\Response(
+                    response: "401",
+                    description: "Requête non autorisée"
+                )
             ]
         )
     ]
-    public function new(Request $request): JsonResponse
+    public function new(Request $request, Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         /** @var Category $category */
         $data = json_decode($request->getContent(), true);
         $food = new Food();
@@ -128,14 +153,6 @@ final class FoodController extends AbstractController
                 return new JsonResponse(['error' => 'Categorie introuvable'], Response::HTTP_NOT_FOUND);
             }
         }
-        // if ($data['takeAwayBooking']) {
-        //     $takeAwayBooking = $this->manager->getRepository(TakeAwayBooking::class)->find($data['takeAwayBooking']);
-        //     if ($takeAwayBooking) {
-        //         $food->addTakeAwayBooking($takeAwayBooking);
-        //     } else {
-        //         return new JsonResponse(['error' => 'Commande à emporter introuvable'], Response::HTTP_NOT_FOUND);
-        //     }
-        // }
 
         $this->manager->persist($food);
         $this->manager->flush();
@@ -399,12 +416,34 @@ final class FoodController extends AbstractController
                             ]
                         )
                     )
+                ),
+                new OA\Response(
+                    response: "401",
+                    description: "Requête non autorisé",
                 )
             ]
         )
     ]
-    public function edit(int $id, Request $request): JsonResponse
+    public function edit(int $id, Request $request, Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         $food = $this->repository->findOneBy(['id' => $id]);
 
         /** @var Category $category */
@@ -422,14 +461,6 @@ final class FoodController extends AbstractController
                 return new JsonResponse(['error' => 'Categorie introuvable'], Response::HTTP_NOT_FOUND);
             }
         }
-        // if ($data['takeAwayBooking']) {
-        //     $takeAwayBooking = $this->manager->getRepository(TakeAwayBooking::class)->find($data['takeAwayBooking']);
-        //     if ($takeAwayBooking) {
-        //         $food->addTakeAwayBooking($takeAwayBooking);
-        //     } else {
-        //         return new JsonResponse(['error' => 'Commande à emporter introuvable'], Response::HTTP_NOT_FOUND);
-        //     }
-        // }
 
         $this->manager->flush();
 
@@ -481,13 +512,35 @@ final class FoodController extends AbstractController
                 new OA\Response(
                     response: '404',
                     description: 'Plat introuvable',
+                ),
+                new OA\Response(
+                    response: '401',
+                    description: 'Requête non autorisé',
                 )
             ]
 
         )
     ]
-    public function delete(int $id): JsonResponse
+    public function delete(int $id, Security $security): JsonResponse
     {
+        $user = $security->getUser();
+
+        if (!$user instanceof User) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
+
+        if (
+            !in_array('ROLE_ADMIN', $user->getRoles())
+            && !in_array('ROLE_RESPONSABLE', $user->getRoles())
+        ) {
+            return new JsonResponse(
+                ['message' => 'Accès non autorisé'],
+                Response::HTTP_UNAUTHORIZED
+            );
+        }
         $food = $this->repository->findOneBy(['id' => $id]);
         if ($food) {
             $this->manager->remove($food);
